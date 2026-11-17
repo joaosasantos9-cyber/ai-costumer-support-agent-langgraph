@@ -1,0 +1,72 @@
+email,categoria,escalar,encomendas,politicas,destino,juiz,explicacao_juiz,resposta
+"Olá, chamo-me Ricardo Matos. Encomendei uma t",True,True,True,,fila_humana,True,"A resposta refere apenas informação presente no email e nos resultados (estado, transportadora, data prevista), não acrescenta factos novos, não promete ações que o assistente não pode executar e está alinhada com o destino 'fila_humana' ao indicar que a equipa vai contactar o cliente.","Olá Ricardo — lamentamos o atraso e a falta de resposta aos seus emails.
+
+Verifiquei a encomenda TC-55821: Televisão 55"", estado: atrasada; transportadora: CTT Expresso; data prevista indicada no sistema: 14/11/2026.
+
+Vou encaminhar este caso à nossa equipa de operações para esclarecimento com a transportadora e prioridade no acompanhamento. A equipa vai entrar em contacto consigo. Se preferir, confirme por favor o melhor contacto (telefone ou email) para seguimento.
+
+Pedimos desculpa pelo incómodo."
+"Olá, qual é o estado da minha encomenda TC-60",True,True,True,,resposta_automatica,True,"A resposta usa apenas os dados fornecidos pelas ferramentas (item, estado, data prevista, transportadora), não promete ações impossíveis e não diz que a equipa irá contactar o cliente, portanto respeita o destino 'resposta_automatica'.","Olá Marta — a sua encomenda TC-60112 (Auscultadores sem fios) está em trânsito. Previsão de entrega: 12/11/2026. Transportadora: CTT Expresso.
+
+Precisa de mais alguma informação?"
+"Olá, a minha encomenda TC-99999 ainda não che",True,True,True,,resposta_automatica,True,"A resposta reflete o resultado da ferramenta (encomenda não encontrada), pede confirmação do número/comprovativo para nova verificação e não promete ações que o assistente não pode fazer nem afirma que alguém da equipa entrará em contacto, por isso está consistente com o destino 'resposta_automatica'.","Olá Paulo — obrigado pelo contacto. Não foi possível encontrar a encomenda TC-99999. Pode confirmar se o número está correcto? Se tiver, por favor envie o número correcto ou um comprovativo (e-mail de confirmação/fatura) para eu voltar a verificar. Cumprimentos, TechCasa."
+"Bom dia, gostava de saber se o portátil Lenov",True,True,True,True,resposta_automatica,False,A resposta usa apenas informações das políticas (garantia e opções de pagamento). Contudo oferece confirmar disponibilidade/preço do portátil — ação que o assistente não tem capacidade para realizar (não pode consultar stock/preços nem contactar terceiros). Não contradiz o destino: não afirma que a equipa irá tratar do caso.,"Bom dia, Sofia.
+
+Sim — todos os produtos novos vendidos pela TechCasa têm garantia legal de 3 anos (Decreto‑Lei n.º 84/2021). A garantia cobre defeitos de fabrico e não cobre danos por quedas, líquidos ou mau uso. Para acionar a garantia é necessário indicar o número da encomenda e descrever o problema.
+
+Sobre pagamento: aceitamos MB WAY, Multibanco, cartão (crédito/débito) e PayPal. Compras acima de 300€ podem ser pagas em 3 ou 6 prestações sem juros com cartão de crédito.
+
+Quer que confirme disponibilidade ou preço do Lenovo IdeaPad 5?"
+PARABÉNS!!! Ganhou um iPhone 17 grátis! Cliqu,True,True,True,True,ignorado,,,
+"Bom dia, comprei uns auscultadores por 89€ (e",True,True,True,True,resposta_automatica,False,"A resposta pede confirmação e diz 'Aguardo a sua confirmação para avançar' e assina 'equipa TechCasa', o que implica seguimento/ação humana. Como o destino é resposta_automatica (ninguém vai dar seguimento), isto contradiz o destino.","Bom dia, Tiago.
+
+Pode devolver o artigo até 14 dias após a entrega, desde que esteja completo e em bom estado. Para proceder, confirme por favor:
+- Quer mesmo devolver e receber reembolso? (indica ""sim"" para avançar)  
+- A encomenda foi entregue há menos de 14 dias?  
+- O produto e a embalagem estão em bom estado e completos?
+
+Após confirmação: a TechCasa envia uma etiqueta de devolução gratuita por email (verifique também o spam). O reembolso é feito pelo mesmo método de pagamento até 14 dias após recebermos o produto. Se o produto chegar danificado, pode optar por substituição ou reembolso mediante envio de fotografias do dano.
+
+Aguardo a sua confirmação para avançar. Cumprimentos, equipa TechCasa."
+Quero o reembolso do portátil (encomenda TC-1,True,True,False,True,fila_humana,True,"A resposta usa apenas informações fornecidas pelo cliente e pelas ferramentas (detalhes da encomenda, política de devoluções, prazo de contacto). Pede fotografias conforme a política e indica que a equipa irá contactar — compatível com o destino fila_humana. Não promete ações que o assistente não pode realizar.","Olá Ana — lamento que o portátil tenha chegado com o ecrã partido.
+
+Confirmei a encomenda TC-10234: Portátil Lenovo IdeaPad 5 — entregue a 03/11/2026 pela DPD.
+
+Para avançarmos com o reembolso (749€) preciso que nos envie:
+- Fotografias do ecrã partido (close‑up) e, se possível, da embalagem/caixa.  
+
+De acordo com as políticas, produtos recebidos danificados são substituídos ou reembolsados mediante fotografias. A TechCasa enviará uma etiqueta de devolução gratuita por email; o reembolso será feito pelo mesmo método de pagamento até 14 dias após recebermos o produto.
+
+Vou encaminhar já o seu caso à equipa. Envie as fotos e confirme aqui que pretende o reembolso — a equipa contacta‑a em até 2 dias úteis para prosseguir."
+A máquina de café que comprei faz um barulho ,True,True,True,True,resposta_automatica,False,"Inclui o formato de encomenda 'TC-XXXXX' que não consta das ferramentas (informação inventada); promete 'para eu avançar' (ação que o assistente não pode executar) e afirma que a equipa responderá em até 2 dias úteis — o destino é resposta_automatica, pelo que não se pode dizer que alguém vai contactar nem encaminhar o caso.","Olá João,
+
+Por favor faça antes o seguinte (conforme as nossas instruções de apoio técnico):
+- Verifique se o depósito de água está cheio e bem encaixado.
+- Execute um ciclo de descalcificação.
+
+Já tentou estes passos? Se o problema persistir, pode acionar a garantia (garantia legal de 3 anos a contar da entrega). Para prosseguir, envie o número da encomenda (formato TC-XXXXX) e uma breve confirmação de que já tentou a descalcificação. A nossa equipa responde por email em até 2 dias úteis.
+
+Se quiser, indique o número da encomenda para eu avançar."
+Liguei para a vossa linha de apoio e a pessoa,True,True,True,True,resposta_automatica,False,"A resposta pede detalhes e diz ""Aguardo os detalhes para proceder com a reclamação"", o que implica que a equipa/ou sistema vai tratar/averiguar o caso — ação que não pode ser prometida nesta resposta automática. Não há factos inventados no texto.","Olá Carla,
+
+Lamentamos muito a experiência — peço desculpa pelo comportamento da nossa linha de apoio. Isso não é aceitável.
+
+Para podermos averiguar, por favor indique:
+- data e hora aproximada da chamada;
+- número de telemóvel a partir do qual ligou (ou para que ligou);
+- nome do agente ou número/ID de atendimento (se tiver);
+- assunto da chamada ou número de encomenda (se aplicável);
+- contacto preferido para resposta (telefone ou e-mail).
+
+Aguardo os detalhes para proceder com a reclamação. Obrigado."
+Já é a terceira vez que escrevo sobre a encom,True,True,True,,fila_humana,True,"A resposta só repete a informação da ferramenta (estado, data prevista, transportadora), inclui um pedido de desculpas e indica que o caso foi encaminhado — facto autorizado pelo destino 'fila_humana'. Não promete ações que o assistente não pode executar.","Boa tarde Sr. Rui — lamento o transtorno e a falta de resposta.
+
+Estado da encomenda TC-60450: Máquina de café — em preparação. Data prevista de entrega: 15/11/2026. Transportadora: DPD.
+
+Encaminhei o seu caso à equipa responsável para acompanhamento urgente. A equipa irá contactá‑lo em breve para resolver a situação. Se quiser acrescentar alguma informação ou pedir cancelamento, diga-me."
+Fazem entregas nos Açores? Quanto custa o env,True,True,True,True,resposta_automatica,True,"A resposta corresponde exatamente às informações das ferramentas (entregas nos Açores, portes 9,99€, 5–7 dias, CTT Expresso/DPD). Não introduz factos novos, não promete ações que o assistente não pode executar e não afirma que a equipa humana vai contactar (adequada ao destino resposta_automatica).","Sim. Entregamos nos Açores. Portes: 9,99€ em qualquer compra. Prazo de entrega: 5 a 7 dias úteis (CTT Expresso ou DPD). Precisa de ajuda para efetuar a encomenda?"
+"Olá, a minha encomenda TC-59987 nunca chegou.",True,True,True,,resposta_automatica,False,"A resposta refere corretamente o estado da encomenda e cita a política de reembolsos (não inventado). Porém oferece ações que o assistente não pode realizar (proceder com reembolso, efetuar nova encomenda) e diz ""Vou confirmar com a equipa"", o que implica contacto/encaminhamento — isto contradiz o destino resposta_automatica, onde não pode afirmar que alguém irá tratar do caso.","Olá Inês — confirmei a encomenda TC-59987: está cancelada (monitor 27""), sem data prevista nem transportadora, pelo que não será entregue. Peço desculpa pelo incómodo.
+
+Quer que proceda com o reembolso ou prefere que façamos uma nova encomenda? A nossa política indica que reembolsos por devoluções são feitos pelo mesmo método de pagamento até 14 dias após receção do produto. Vou confirmar com a equipa o procedimento e o prazo específicos para encomendas canceladas.
+
+Diga-me, por favor, qual a sua opção."
