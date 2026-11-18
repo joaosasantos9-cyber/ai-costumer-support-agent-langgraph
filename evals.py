@@ -1,4 +1,6 @@
 import csv
+import uuid
+from langgraph.types import Command
 from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage, SystemMessage
 from agente import graph, llm
@@ -30,7 +32,11 @@ juiz = llm.with_structured_output(Avaliacao)
 
 # ---------- Correr e avaliar um email ----------
 def avaliar(linha):
-    r = graph.invoke({"messages": [HumanMessage(content=linha["chatInput"])]})
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+    r = graph.invoke({"messages": [HumanMessage(content=linha["chatInput"])]}, config)
+    if "__interrupt__" in r:
+        r = graph.invoke(Command(resume={"acao": "aprovar"}), config)
+
     c = r["classificacao"]
     ferramentas = [ch["name"] for m in r["messages"] for ch in (getattr(m, "tool_calls", None) or [])]
     observacoes = [m.content for m in r["messages"] if m.type == "tool"]
@@ -38,8 +44,8 @@ def avaliar(linha):
 
     resultado = {
         "email": linha["chatInput"][:45],
-        "categoria": c.categoria == linha["categoria_esperada"].strip(),
-        "escalar": c.escalar_para_humano == (linha["escalar_esperado"].strip() == "sim"),
+        "categoria": c["categoria"] == linha["categoria_esperada"].strip(),
+        "escalar": c["escalar_para_humano"] == (linha["escalar_esperado"].strip() == "sim"),
         "encomendas": ("consultar_encomenda" in ferramentas) == (linha["ferramenta_esperada"].strip() == "sim"),
         "politicas": None if politicas_esperada == "qualquer" else ("politicas_techcasa" in ferramentas) == (politicas_esperada == "sim"),
         "destino": r["destino"],

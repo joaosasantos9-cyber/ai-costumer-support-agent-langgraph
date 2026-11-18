@@ -9,6 +9,8 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import StateGraph, MessagesState, START, END
 from langgraph.prebuilt import ToolNode
+from langgraph.checkpoint.memory import InMemorySaver  # NOVO
+from langgraph.types import Command, interrupt  # NOVO
 
 load_dotenv()
 llm = ChatOpenAI(model="gpt-5-mini")
@@ -58,7 +60,7 @@ def politicas_techcasa(pergunta: str) -> str:
 tools = [consultar_encomenda, politicas_techcasa]
 llm_com_ferramentas = llm.bind_tools(tools)
 
-# ---------- Classificação (o "Structured Output Parser") ----------
+# ---------- Classificação ----------
 class Classificacao(BaseModel):
     categoria: Literal["encomenda", "devolucao", "tecnico", "informacao", "reclamacao", "spam"]
     urgencia: Literal["baixa", "media", "alta"]
@@ -102,19 +104,20 @@ SYSTEM_PROMPT = (
     "Se não tiveres a informação de que o cliente precisa, diz-lho com honestidade."
 )
 
-# ---------- Estado: as mensagens + a classificação + o destino ----------
+# ---------- Estado ----------
 class Estado(MessagesState):
-    classificacao: Classificacao
+    classificacao: dict  # guardada como dicionário (era um objeto Classificacao)
     destino: str
+    resposta_final: str
 
 # ---------- Nós ----------
 def classificar(state: Estado):
     email = state["messages"][0].content
     resultado = classificador.invoke([SystemMessage(content=CLASSIFICADOR_PROMPT), HumanMessage(content=email)])
-    return {"classificacao": resultado}
+    return {"classificacao": resultado.model_dump()}  # converte o objeto Pydantic num dicionário
 
 def assistente(state: Estado):
-    if state["classificacao"].escalar_para_humano:
+    if state["classificacao"]["escalar_para_humano"]:
         contexto = (
             "Este caso VAI ser encaminhado para um membro da equipa, que vai dar seguimento. "
             "Podes dizer ao cliente que a equipa vai entrar em contacto."
@@ -128,24 +131,37 @@ def assistente(state: Estado):
     return {"messages": [llm_com_ferramentas.invoke(mensagens)]}
 
 def fila_humana(state: Estado):
-    return {"destino": "fila_humana"}
+    c = state["classificacao"]
+    proposta = state["messages"][-1].content
+    decisao = interrupt({
+        "email": state["messages"][0].content,
+        "categoria": c["categoria"],
+        "urgencia": c["urgencia"],
+        "motivo": c["motivo_escalamento"],
+        "resposta_proposta": proposta,
+    })
+    if decisao["acao"] == "aprovar":
+        return {"destino": "fila_humana", "resposta_final": proposta}
+    if decisao["acao"] == "editar":
+        return {"destino": "fila_humana", "resposta_final": decisao["texto"]}
+    return {"destino": "rejeitado", "resposta_final": ""}
 
 def resposta_automatica(state: Estado):
-    return {"destino": "resposta_automatica"}
+    return {"destino": "resposta_automatica", "resposta_final": state["messages"][-1].content}
 
 def ignorar_spam(state: Estado):
     return {"destino": "ignorado"}
 
-# ---------- Decisões (os nós "If" do n8n) ----------
+# ---------- Decisões ----------
 def depois_de_classificar(state: Estado) -> Literal["ignorar_spam", "assistente"]:
-    if state["classificacao"].categoria == "spam":
+    if state["classificacao"]["categoria"] == "spam":
         return "ignorar_spam"
     return "assistente"
 
 def depois_do_assistente(state: Estado) -> Literal["tools", "fila_humana", "resposta_automatica"]:
     if state["messages"][-1].tool_calls:
         return "tools"
-    if state["classificacao"].escalar_para_humano:
+    if state["classificacao"]["escalar_para_humano"]:
         return "fila_humana"
     return "resposta_automatica"
 
@@ -164,26 +180,41 @@ builder.add_conditional_edges("assistente", depois_do_assistente)
 builder.add_edge("tools", "assistente")
 for no_final in ["fila_humana", "resposta_automatica", "ignorar_spam"]:
     builder.add_edge(no_final, END)
-graph = builder.compile()
+graph = builder.compile(checkpointer=InMemorySaver())  # NOVO: guarda o estado durante a pausa
 
-# ---------- Testes ----------
+# ---------- Teste interativo ----------
 if __name__ == "__main__":
     emails = [
         "Olá, chamo-me Ricardo Matos. Encomendei uma televisão há 3 semanas (encomenda TC-55821) e ainda não chegou. Já enviei 2 emails e ninguém me respondeu. Se não tiver resposta até sexta vou fazer queixa no Livro de Reclamações.",
         "Bom dia, gostava de saber se o portátil Lenovo IdeaPad 5 tem garantia de 3 anos e se posso pagar em prestações. Obrigada, Sofia Costa",
-        "PARABÉNS!!! Ganhou um iPhone 17 grátis! Clique já neste link para reclamar o seu prémio antes que expire: www.premio-gratis.xyz",
-        "Liguei para a vossa linha de apoio e a pessoa que me atendeu foi muito mal-educada e desligou-me o telefone. Isto é inaceitável. Carla Sousa",
-]
-    for email in emails:
-        r = graph.invoke({"messages": [HumanMessage(content=email)]})
-        c = r["classificacao"]
-        ferramentas = [ch["name"] for m in r["messages"] for ch in (getattr(m, "tool_calls", None) or [])]
-        print("\n" + "=" * 70)
+    ]
+    for i, email in enumerate(emails, 1):
+        config = {"configurable": {"thread_id": f"email-{i}"}}
+        r = graph.invoke({"messages": [HumanMessage(content=email)]}, config)
+
+        if "__interrupt__" in r:
+            pedido = r["__interrupt__"][0].value
+            print("\n" + "=" * 70)
+            print("CASO ESCALADO PARA REVISÃO HUMANA")
+            print(f"Categoria: {pedido['categoria']} | Urgência: {pedido['urgencia']}")
+            print("Motivo:", pedido["motivo"])
+            print("\nRESPOSTA PROPOSTA PELO AGENTE:\n" + pedido["resposta_proposta"])
+            print("=" * 70)
+
+            # Só aceita uma decisão explícita: Enter ou outra letra voltam a perguntar
+            acao = ""
+            while acao not in ("a", "e", "r"):
+                acao = input("Aprovar (a), editar (e) ou rejeitar (r)? ").strip().lower()
+
+            if acao == "a":
+                decisao = {"acao": "aprovar"}
+            elif acao == "e":
+                decisao = {"acao": "editar", "texto": input("Escreve a resposta final:\n")}
+            else:
+                decisao = {"acao": "rejeitar"}
+            r = graph.invoke(Command(resume=decisao), config)
+
+        print("\n" + "-" * 70)
         print("EMAIL:", email[:70] + "...")
-        print(f"CATEGORIA: {c.categoria} | URGÊNCIA: {c.urgencia} | ESCALAR: {c.escalar_para_humano}")
-        if c.motivo_escalamento:
-            print("MOTIVO:", c.motivo_escalamento)
         print("DESTINO:", r["destino"])
-        print("FERRAMENTAS:", ferramentas or "nenhuma")
-        if r["destino"] != "ignorado":
-            print("RESPOSTA:", r["messages"][-1].content)
+        print("RESPOSTA FINAL:", r.get("resposta_final") or "(nenhuma)")

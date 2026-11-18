@@ -9,6 +9,7 @@ An AI agent that triages customer support emails for **TechCasa**, a fictional P
 - **Escalates to a human** based on explicit business rules: legal or public complaint threats, refunds above €200, or repeated unanswered contacts.
 - **Uses two tools:** an order lookup (status, delivery date, carrier) and a RAG search over the store policies (warranty, returns, shipping, payments, troubleshooting).
 - **Writes the reply knowing the routing decision**, so it never promises follow-up on emails that won't get one.
+- **Human-in-the-loop for escalated emails:** the graph pauses before anything is sent, and a person approves, edits or rejects the agent's proposed reply. Only an explicit decision resumes the graph; both the proposed and the final reply are kept.
 
 ## Architecture
 
@@ -21,11 +22,13 @@ flowchart LR
     T --> B
     T -.- T1[(Orders)]
     T -.- T2[(Policies<br/>vector store)]
-    B -- escalate --> H[human queue]
+    B -- escalate --> H[human review<br/>interrupt]
+    H -- approve / edit --> S[send final reply]
+    H -- reject --> X[not sent]
     B -- no escalation --> R[automatic reply]
 ```
 
-Routing decisions are plain Python functions on the graph's conditional edges, not model decisions: the model classifies, the code decides where the email goes.
+Routing decisions are plain Python functions on the graph's conditional edges, not model decisions: the model classifies, the code decides where the email goes. The human review uses LangGraph's `interrupt()` with a checkpointer, so the graph's state is saved while it waits for a decision.
 
 ## Evaluation
 
@@ -43,9 +46,11 @@ The **LLM-as-judge** checks each reply for invented information, promises of act
 
 The two order-tool misses are cases where the agent looked up the order before answering a return or refund request. This is reasonable behaviour, so the test expectation is likely too strict rather than the agent being wrong.
 
+During evaluation, escalated emails are auto-approved, so the suite measures the agent's proposed reply. Results vary slightly between runs: in some runs the agent still occasionally offers an action it cannot perform, which the judge catches. Running the suite several times and averaging would give a more reliable picture.
+
 ## Tech stack
 
-Python · LangGraph · LangChain · OpenAI `gpt-5-mini` and `text-embedding-3-small` · Pydantic structured output · in-memory vector store (RAG)
+Python · LangGraph (interrupts, checkpointer) · LangChain · OpenAI `gpt-5-mini` and `text-embedding-3-small` · Pydantic structured output · in-memory vector store (RAG)
 
 ## How to run
 
@@ -54,7 +59,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 echo "OPENAI_API_KEY=your-key" > .env
-python agente.py   # run 4 example emails
+python agente.py   # run 2 example emails, with interactive human review
 python evals.py    # run the full evaluation
 ```
 
