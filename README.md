@@ -1,4 +1,5 @@
 # AI Customer Support Agent (LangGraph + RAG + Evals)
+**Live demo:** https://o-teu-link.streamlit.app (password available on request)
 
 An AI agent that triages customer support emails for **TechCasa**, a fictional Portuguese online electronics store. It classifies each email, decides when a human needs to step in, looks up real order data and store policies, and drafts a grounded reply. Built in Python with LangGraph, with an automated evaluation suite.
 
@@ -61,6 +62,7 @@ pip install -r requirements.txt
 echo "OPENAI_API_KEY=your-key" > .env
 python agente.py   # run 2 example emails, with interactive human review
 python evals.py    # run the full evaluation
+python -m streamlit run app.py   # web interface
 ```
 
 All data in this project is fictional. A low-code version of the same agent was also built in n8n.
