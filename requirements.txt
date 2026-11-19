@@ -3,3 +3,4 @@ langchain-openai
 langchain-text-splitters
 python-dotenv
 numpy
+streamlit
